@@ -150,6 +150,20 @@ namespace Midjourney.Base.Models
         public bool EnableYouChuanRestartContinue { get; set; }
 
         /// <summary>
+        /// 悠船强制优先慢速
+        /// 开启后，请求为快速/极速的任务，若开启「优先消耗慢速」的账号慢速总剩余大于阈值，
+        /// 则优先以慢速选中这些账号（任务按慢速提交，走慢速队列与慢速计数）
+        /// 慢速总剩余小于等于阈值，或这些账号没有可用慢速时，按原有速度逻辑分配
+        /// </summary>
+        public bool YouChuanForcePreferRelax { get; set; } = false;
+
+        /// <summary>
+        /// 悠船强制优先慢速阈值
+        /// 开启「优先消耗慢速」的账号慢速总剩余次数大于该值时生效
+        /// </summary>
+        public int YouChuanForcePreferRelaxThreshold { get; set; } = 120;
+
+        /// <summary>
         /// 私人定制开启的功能列表 - 在保存授权码/激活时生成
         /// </summary>
         public List<string> PrivateFeatures { get; set; } = [];

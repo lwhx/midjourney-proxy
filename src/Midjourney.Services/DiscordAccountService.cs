@@ -147,6 +147,18 @@ namespace Midjourney.Services
                     modes = [GenerationSpeedMode.FAST, GenerationSpeedMode.TURBO, GenerationSpeedMode.RELAX];
                 }
 
+                // 强制优先慢速（新增）：请求为快速/极速时，若开启「优先消耗慢速」的账号慢速总剩余大于阈值，
+                // 在循环最前插入一次慢速尝试（0 - 慢速），优先以慢速选中这些账号，任务按慢速提交
+                // 未命中或这些账号没有可用慢速时，后续模式照常尝试，原有行为不变
+                var relaxFirstAttempt = false;
+                if (isUpscale != true && isVideo != true
+                    && (modes.Contains(GenerationSpeedMode.FAST) || modes.Contains(GenerationSpeedMode.TURBO))
+                    && YouChuanRelaxPool.IsForcePreferRelaxActive())
+                {
+                    modes.Insert(0, GenerationSpeedMode.RELAX);
+                    relaxFirstAttempt = true;
+                }
+
                 // 根据顺序获取速度模式进行过滤，直到获取到可用实例为止
                 // 如果所有速度模式都没有可用实例，则返回 null
                 // 注意：IEnumerable<T> 是延迟执行的，Where 只是构建了查询表达式，并没有立即执行，ToList() 会立即执行
@@ -163,6 +175,16 @@ namespace Midjourney.Services
 
                        // 排除指定 ID 的实例
                        .WhereIf(notInstanceIds != null && notInstanceIds.Count > 0, c => !notInstanceIds.Contains(c.ChannelId));
+
+                    // 0 - 慢速尝试：仅限悠船且开启「优先消耗慢速」的非固定速度账号
+                    if (relaxFirstAttempt)
+                    {
+                        list = list.Where(c => c.Account.IsYouChuan
+                                               && c.Account.YouChuanEnablePreferRelax
+                                               && c.Account.Mode == null);
+
+                        relaxFirstAttempt = false;
+                    }
 
                     list = list
                         // 非放大任务，判断是否允许继续
