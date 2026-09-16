@@ -526,6 +526,36 @@ namespace Midjourney.Base.Models
         public bool EnableConvertPromptLinkStorage { get; set; } = false;
 
         /// <summary>
+        /// 自定义垫图替换规则
+        /// 配置后转换提示词中的链接到指定链接，例如：垫图、混图、参考图等
+        /// 支持配置多个 key value，例如：{"cdn.huanwangai.cn":"cdn.skynetcircle.com"}
+        /// </summary>
+        public Dictionary<string, string> ConvertPromptLinkReplaceRules { get; set; } = new();
+
+        /// <summary>
+        /// 按自定义垫图替换规则替换提示词中的链接
+        /// </summary>
+        /// <param name="prompt">提示词</param>
+        /// <returns>替换后的提示词</returns>
+        public string ReplacePromptLinkRules(string prompt)
+        {
+            if (string.IsNullOrWhiteSpace(prompt) || ConvertPromptLinkReplaceRules == null || ConvertPromptLinkReplaceRules.Count == 0)
+            {
+                return prompt;
+            }
+
+            foreach (var rule in ConvertPromptLinkReplaceRules)
+            {
+                if (!string.IsNullOrWhiteSpace(rule.Key) && rule.Value != null)
+                {
+                    prompt = prompt.Replace(rule.Key, rule.Value, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+
+            return prompt;
+        }
+
+        /// <summary>
         /// 保存用户上传的 link 到文件存储（例如：describe）（废弃）
         /// </summary>
         public bool EnableSaveUserUploadLink { get; set; } = true;

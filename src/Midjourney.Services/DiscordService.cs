@@ -3397,7 +3397,8 @@ namespace Midjourney.Services
             // 未开启提示词链接转换保存到云存储
             if (!setting.EnableConvertPromptLinkStorage)
             {
-                return prompt;
+                // 自定义垫图替换规则
+                return setting.ReplacePromptLinkRules(prompt);
             }
 
             //// 未开启用户上传
@@ -3545,6 +3546,9 @@ namespace Midjourney.Services
                     }
                 }
             }
+
+            // 自定义垫图替换规则
+            prompt = setting.ReplacePromptLinkRules(prompt);
 
             return prompt;
         }
